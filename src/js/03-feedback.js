@@ -1,50 +1,43 @@
+// імпортуємо функцію throttle з lodash
 import throttle from 'lodash.throttle';
 
-const feedbackForm = document.querySelector('.feedback-form');
-const emailInput = feedbackForm.querySelector('input[name="email"]');
-const messageTextArea = feedbackForm.querySelector('textarea[name="message"]');
-const feedbackFormStateKey = 'feedback-form-state';
+const form = document.querySelector('.feedback-form');
+const emailInput = document.querySelector('input[name="email"]');
+const messageInput = document.querySelector('textarea[name="message"]');
 
-const saveFormStateToStorage = throttle(() => {
+// функція для збереження значень полів форми в локальне сховище
+const saveFormState = () => {
   const formState = {
     email: emailInput.value,
-    message: messageTextArea.value,
+    message: messageInput.value,
   };
-  localStorage.setItem(feedbackFormStateKey, JSON.stringify(formState));
-}, 500);
+  localStorage.setItem('feedback-form-state', JSON.stringify(formState));
+};
 
-const loadFormStateFromStorage = () => {
-  const formStateJson = localStorage.getItem(feedbackFormStateKey);
-  if (formStateJson) {
-    const formState = JSON.parse(formStateJson);
+// функція для заповнення полів форми з локального сховища
+const loadFormState = () => {
+  const formState = JSON.parse(localStorage.getItem('feedback-form-state'));
+  if (formState) {
     emailInput.value = formState.email;
-    messageTextArea.value = formState.message;
-  } else {
-    emailInput.value = '';
-    messageTextArea.value = '';
+    messageInput.value = formState.message;
   }
 };
 
-const clearFormStateAndStorage = () => {
-  localStorage.removeItem(feedbackFormStateKey);
-  emailInput.value = '';
-  messageTextArea.value = '';
-  console.log('Form submitted with state:');
-  console.log({
-    email: emailInput.value,
-    message: messageTextArea.value,
-  });
-};
+// викликаємо функцію при завантаженні сторінки
+loadFormState();
 
-feedbackForm.addEventListener('input', event => {
-  if (event.target === emailInput || event.target === messageTextArea) {
-    saveFormStateToStorage();
-  }
-});
+// викликаємо функцію збереження форми в локальне сховище з допомогою throttle
+form.addEventListener('input', throttle(saveFormState, 500));
 
-feedbackForm.addEventListener('submit', event => {
+// викликаємо функцію очищення форми і локального сховища при сабміті форми
+form.addEventListener('submit', (event) => {
   event.preventDefault();
-  clearFormStateAndStorage();
+  const formState = {
+    email: emailInput.value,
+    message: messageInput.value,
+  };
+  console.log(formState);
+  localStorage.removeItem('feedback-form-state');
+  emailInput.value = '';
+  messageInput.value = '';
 });
-
-loadFormStateFromStorage();
